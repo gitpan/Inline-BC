@@ -2,7 +2,8 @@ README
 Changes
 MANIFEST
 Makefile.PL
-test.pl
+t/00use.t
+t/01bc.t
 tools/test.dat
 BC.pm
 BC.xs

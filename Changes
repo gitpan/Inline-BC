@@ -1,2 +1,5 @@
 Mon Nov 25 06:32:02 GMT 2002 -
   Patch supplied by Mike Castle for the Perl grafting to bc.
+
+Fri Nov 29 09:26:14 GMT 2002 -
+  Fixed up the test so that the smokehouse doesn't complain :-)
