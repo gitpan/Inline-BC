@@ -5,7 +5,7 @@ require Inline;
 require DynaLoader;
 require Exporter;
 use vars qw(@ISA $VERSION @EXPORT_OK $RUN_ONCE);
-$VERSION = '0.05';
+$VERSION = '0.06';
 @ISA = qw(Inline DynaLoader Exporter);
 
 use Cwd qw(abs_path); 
@@ -307,7 +307,7 @@ Looking at the test suite - there are examples of several different ways of
 invoking Inline::BC:
 
 (1) code in the DATA statement
-  use Inline => BC;
+  use Inline BC;
   print x(4) == 5.3 ? "ok 2\n" : "not ok 2\n";
   __DATA__
   __BC__
