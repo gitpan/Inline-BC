@@ -5,7 +5,7 @@ require Inline;
 require DynaLoader;
 require Exporter;
 use vars qw(@ISA $VERSION @EXPORT_OK $RUN_ONCE);
-$VERSION = '0.04';
+$VERSION = '0.05';
 @ISA = qw(Inline DynaLoader Exporter);
 
 use Cwd qw(abs_path); 
@@ -259,7 +259,7 @@ Inline::BC -  Inline ILSM for bc the arbitrary precision math Language
 
 =head1 SYNOPSIS
 
-  use Inline => BC;
+  use Inline BC;
   print x(int(rand(time())));
   __DATA__
   __BC__
