@@ -5,7 +5,7 @@ require Inline;
 require DynaLoader;
 require Exporter;
 use vars qw(@ISA $VERSION @EXPORT_OK $RUN_ONCE);
-$VERSION = '0.02';
+$VERSION = '0.03';
 @ISA = qw(Inline DynaLoader Exporter);
 
 use Cwd qw(abs_path); 

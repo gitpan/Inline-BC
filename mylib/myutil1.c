@@ -38,8 +38,8 @@
 //#include "proto.h"
 
 #include <EXTERN.h>
-#include <XSUB.h>
 #include <perl.h>
+#include <XSUB.h>
 
 #include "inlinebc.h"
 
