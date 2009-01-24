@@ -1,8 +1,2 @@
-Mon Nov 25 06:32:02 GMT 2002 -
-  Patch supplied by Mike Castle for the Perl grafting to bc.
-
-Fri Nov 29 09:26:14 GMT 2002 -
-  Fixed up the test so that the smokehouse doesn't complain :-)
-
-Wed Dec  4 15:55:32 GMT 2002 -
-  Documentation erros about Inline Usage as pointed out by Abigail :-)
+Sat Jan 24 14:59:00 NZDT 2009
+* an old fix I think for Global symbol "$RE_balanced_brackets" requires explicit package name

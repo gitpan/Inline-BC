@@ -5,7 +5,8 @@ require Inline;
 require DynaLoader;
 require Exporter;
 use vars qw(@ISA $VERSION @EXPORT_OK $RUN_ONCE);
-$VERSION = '0.06';
+use vars qw($RE_balanced_brackets $RE_balanced_parens);
+$VERSION = '0.07';
 @ISA = qw(Inline DynaLoader Exporter);
 
 use Cwd qw(abs_path); 
@@ -157,9 +158,9 @@ sub build {
     my $RE_comment_Cpp = q{(?:\/\*(?:(?!\*\/)[\s\S])*\*\/|\/\/[^\n]*\n)};
     my $RE_quoted      = (q{(?:(?:\")(?:[^\\\"]*(?:\\.[^\\\"]*)*)(?:\")}
                         .q{|(?:\')(?:[^\\\']*(?:\\.[^\\\']*)*)(?:\'))});
-    our $RE_balanced_brackets =
+    $RE_balanced_brackets =
         qr'(?:[{]((?:(?>[^{}]+)|(??{$RE_balanced_brackets}))*)[}])';
-    our $RE_balanced_parens   =
+    $RE_balanced_parens   =
         qr'(?:[(]((?:(?>[^()]+)|(??{$RE_balanced_parens}))*)[)])';
 
     # First, we crush out anything potentially confusing.
