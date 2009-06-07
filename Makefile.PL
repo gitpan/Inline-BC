@@ -3,7 +3,8 @@ use ExtUtils::MakeMaker;
 #use Cwd qw(abs_path); 
 WriteMakefile(
     clean => { 'FILES'	=> '*~ *.inl core test*.txt *.tar.gz _Inline ' },
-    'PREREQ_PM' => { 'Inline'	=> '0.43' },
+    'PREREQ_PM' => { 'Inline'	   => '0.43',
+		     'Test::More'  => '0.72'},
     dist => { 'TARFLAGS'	=> 'cvf',
               'COMPRESS'        => 'gzip -9f',
     		'SUFFIX'	=> '.tgz'},

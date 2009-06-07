@@ -1,5 +1,5 @@
 
-void my_perl_bc_init(void);
+void my_perl_bc_init(int);
 
 void my_init_parse_stash(void);
 

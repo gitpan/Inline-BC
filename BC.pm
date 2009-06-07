@@ -6,7 +6,10 @@ require DynaLoader;
 require Exporter;
 use vars qw(@ISA $VERSION @EXPORT_OK $RUN_ONCE);
 use vars qw($RE_balanced_brackets $RE_balanced_parens);
-$VERSION = '0.07';
+use vars qw($use_math_lib);
+
+$use_math_lib = 0;    # assume BC's math library is not required
+$VERSION      = '0.08';
 @ISA = qw(Inline DynaLoader Exporter);
 
 use Cwd qw(abs_path); 
@@ -14,7 +17,6 @@ use Cwd qw(abs_path);
 use Data::Dumper;
 
 my @export_ok = qw(bc_init bc_parse bc_run);
-
 
 #==============================================================================
 # lots of this code has been shamelessly stolen from Inline::Ruby :-)
@@ -29,10 +31,7 @@ eval_support_code();
 #==============================================================================
 sub eval_support_code{
     return if $RUN_ONCE;
-    $RUN_ONCE = 1;
     Inline::BC->bootstrap($VERSION);
-    bc_init();
-    #warn "bc_init called \n";
 }
 
 
@@ -82,7 +81,10 @@ sub validate {
 		    if (defined $filters{$val}) {
 			my $filter = Inline::Filters->new($val, 
 							  $filters{$val});
-			$o->add_list($o->{ILSM}, $key, $filter, []);
+			$o->add_list($o->{ILSM},
+				     $key,
+				     [ $filter ],
+				     [ ]);
 		    }
 		    else {
 			croak "Invalid filter $val specified.";
@@ -90,12 +92,32 @@ sub validate {
 		}
 	    }
 	}
+	elsif ($key eq 'MATH_LIB') {
+	    croak "Invalid value specified for config option 'MATH_LIB'"
+	        if ($value ne '1' and $value ne '0');
+
+	    if ($RUN_ONCE) {
+	        if ($value ne $use_math_lib) {
+		    warn("The BC interpreter was initialised with option ",
+			 "MATH_LIB => $use_math_lib.\n",
+			 "Any subsequent use of option 'MATH_LIB' will ",
+			 "have no effect.\n");
+		}
+	    }
+	    else {
+	        $use_math_lib = $value;
+	    }
+	}
 	else {
 	    croak "$key is not a valid config option for BC";
 	}
-	next;
     }
-    #warn "finished validate\n";
+
+    # Ensure the BC interpreter is initialised only once!
+    unless ($RUN_ONCE) {
+        bc_init( $use_math_lib );
+	$RUN_ONCE = 1;
+    }
 }
 
 
@@ -135,6 +157,8 @@ sub info {
     for my $function (sort @functions) {
 	$info .= "\tdefine $function()\n";
     }
+
+    $info .= "\nThe BC math library has been loaded.\n" if ($use_math_lib);
 
     return $info;
 }
@@ -200,7 +224,6 @@ END
     my $namespace = Inline::denter->new->indent(
 	*functions => \%functions,
 	*filtered  => $o->{ILSM}{code},
-#	*filtered  => $codestash,
 	*bytecode  => $bytecode,
 	*binding   => "package ".$o->{API}{pkg}.";\n".$binding,
     );
@@ -215,7 +238,6 @@ END
     $o->{ILSM}{namespace} = \%functions;
     $o->{ILSM}{built}++;
 
-    #warn "finished in the build\n";
 }
 
 
@@ -235,19 +257,15 @@ sub load {
     require Inline::denter;
     my %bcdat = Inline::denter->new->undent($bcdat);
     $o->{ILSM}{namespace} = $bcdat{functions};
-    #$o->{ILSM}{code} = $bcdat{bytecode};
     $o->{ILSM}{code} = $bcdat{filtered};
     $o->{ILSM}{binding} = $bcdat{binding};
     $o->{ILSM}{loaded}++;
 
     # Run it
-    #warn "filtered code is: ".$o->{ILSM}{code}."\n";
-    #bc_run($o->{ILSM}{code});
     bc_run(bc_parse($o->{ILSM}{code}));
 
     eval $o->{ILSM}{binding};
     croak $@ if $@;
-    #warn "finished in the load\n";
 }
 
 #==============================================================================
@@ -274,7 +292,7 @@ Inline::BC -  Inline ILSM for bc the arbitrary precision math Language
 
 Inline::BC is an ILSM (Inline Support Language Module ) for Gnu bc, the arbitrary
 precision numeric processing language.  Inline::BC - like other ILSMs - allows you
-compile (well - render to byte code ), and run Gnu bc code within your Perl
+to compile (well - render to byte code ), and run Gnu bc code within your Perl
 program.
 
 From the Gnu BC README:
@@ -333,10 +351,124 @@ invoking Inline::BC:
   print aa() =~ /[0\n]/s ? "ok 4\n" : "not ok 4\n";
 
 
+=head1 CONFIG OPTIONS
+
+Inline::BC provides the following config options.
+
+B<MATH_LIB =E<gt> 0|1>
+
+When Inline::BC is invoked with the config option 'MATH_LIB => 1',
+then the GNU bc processor is initialised with its builtin math
+library.
+The math library offers the following builtin functions:
+
+=over 4
+
+=item s(x)
+
+The sine of x, x is in radians.
+
+=item c(x)
+
+The cosine of x, x is in radians.
+
+=item a(x)
+
+The arctangent of x, arctangent returns radians.
+
+=item l(x)
+
+The natural logarithm of x.
+
+=item e(x)
+
+The exponential function, raising e to the value x.
+
+=item j(n,x)
+
+The Bessel function of integer order n of x.
+
+=back
+
+Example: Calculating the hyperbolic sine of a value.
+
+use Inline BC => "DATA", MATH_LIB => 1;
+
+my $r = bc_sinh(4.712);
+
+__END__
+
+__BC__
+  define bc_sinh (u) {
+    scale = 12
+    t = (e(u) - e(-u)) * 0.5
+    return ( t )
+  }
+
+An interesting point to note:
+
+To calculate the square root of a number, GNU bc provides
+the expression I<sqrt(x)>.  Because GNU bc treats it as an
+expression rather than a function, there is no need to load
+the math library in order to use sqrt(x).
+
+B<FILTERS =E<gt> [ "filtnam1", ... ]>
+
+The 'FILTERS' option allows the BC code to be pre-processed
+before Inline passes it to the BC interpreter.  To use
+existing pre-processing filters with Inline::BC the module
+I<Inline::Filters> must be installed. This module provides
+the filters C<Strip_POD>, C<Strip_Comments>, and
+C<Preprocess>.
+
+The filter C<Strip_POD> is used to remove POD documentation
+contained in the BC code. C<Strip_Comments> will remove all
+comments found in the BC code. The final filter, C<Preprocess>,
+allows the programmer to embed C preprocessor directives in
+the BC code. The filter processes these directives by invoking
+the C preprocessor to generate code that can then be passed
+to the BC interpreter.
+
+In the following example, POD documentation is embedded in
+the BC code. This must be removed before the BC code is
+passed to the BC interpreter.
+
+  use Inline BC => "DATA",
+             MATH_LIB => 1,
+             FILTERS  => [ qw(Strip_POD) ];
+
+  my $r = bc_sinh(4.712);
+
+  __END__
+
+  __BC__
+  =head1 BC Functions
+
+  The following functions are defined in GNU bc language.
+
+  =cut
+
+  /*************************************/
+  =pod
+
+  Function Name: bc_sinh(x)
+  Description  : Calculates the hyperbolic sine of real value x.
+  Return       : The calculated result with 12 fractional decimal
+               : digits of precision.
+
+  =cut
+
+  /*************************************/
+  define bc_sinh (u) {
+    scale = 12
+    t = (e(u) - e(-u)) * 0.5
+    return ( t )
+  }
+
 
 =head1 VERSION
 
-very new
+Inline::BC 0.08
 
 =head1 AUTHOR
 
@@ -344,7 +476,9 @@ Piers Harding - piers@cpan.org
 
 =head1 SEE ALSO
 
-man bc - perldoc Inline
+ man bc
+ perldoc Inline
+ perldoc Inline::Filters
 
 =head1 COPYRIGHT
 

@@ -4,7 +4,10 @@ MANIFEST
 Makefile.PL
 t/00use.t
 t/01bc.t
+t/02mathlib.t
 tools/test.dat
+tools/02mathlib-ev.dat
+tools/t-02mathlib-ev.bc
 BC.pm
 BC.xs
 mylib/Makefile.PL

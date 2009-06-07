@@ -18,9 +18,9 @@ SV* bc_run(SV* code){
 }
 
 /* initialise the bc interpreter */
-void bc_init(void){
+void bc_init(int use_math_lib){
 
-    my_perl_bc_init();
+    my_perl_bc_init(use_math_lib);
 
 }
 
@@ -44,5 +44,5 @@ bc_run (code)
 	SV *	code
 
 void
-bc_init ( )
-
+bc_init (use_math_lib)
+	int	use_math_lib

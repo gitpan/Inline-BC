@@ -131,6 +131,35 @@ open_new_file ()
 }
 
 
+/* Load the set of builtin math functions contained
+   in BC's math library. */
+
+void
+load_math_lib ()
+{
+  /* Load the code from a precompiled version of the math library. */
+  extern char *libmath[];
+  char **mstr;
+  char tmp;
+
+  /* These MUST be in the order of first mention of each function.
+     That is why "a" comes before "c" even though "a" is defined after
+     after "c".  "a" is used in "s"! */
+  tmp = lookup ("e", FUNCT);
+  tmp = lookup ("l", FUNCT);
+  tmp = lookup ("s", FUNCT);
+  tmp = lookup ("a", FUNCT);
+  tmp = lookup ("c", FUNCT);
+  tmp = lookup ("j", FUNCT);
+  mstr = libmath;
+
+  while (*mstr) {
+    load_code (*mstr);
+    mstr++;
+  }
+}
+
+
 /* Set yyin to the new file. */
 
 void
@@ -143,11 +172,14 @@ new_yy_file (file)
 }
 
 
+/* Initialise data structures and global variables for
+   the BC interpreter. */
 
-void my_perl_bc_init( void ){
-
+void
+my_perl_bc_init (use_math_lib)
+     int use_math_lib;
+{
   compile_only = FALSE;
-  use_math = FALSE;
   warn_not_std = FALSE;
   std_only = FALSE;
   interactive = FALSE;
@@ -165,6 +197,9 @@ void my_perl_bc_init( void ){
   init_gen ();
   is_std_in = FALSE;
 
+  /* Load BC's math library if required. */
+  if (use_math_lib) load_math_lib();
+
 }
 
 char * my_perl_bc_parse( char * str ){
@@ -174,15 +209,10 @@ char * my_perl_bc_parse( char * str ){
   compile_only = TRUE;
   yyin = NULL;
   my_init_parse_stash();
-  //fprintf(stderr, "compiling this: %s \n", str);
   my_buf = (YY_BUFFER_STATE) yy_scan_string(str);
-  //fprintf(stderr, "added to buffer \n");
   yyparse ();
-  //fprintf(stderr, "done parse \n");
   yy_delete_buffer(my_buf);
-  //fprintf(stderr, "deleted buffer \n");
   my_addto_parse_stash("\n");
-  //fprintf(stderr, "Compile result: %s \n", my_current_stash());
   return my_current_stash();
 
 }
@@ -194,9 +224,7 @@ char * my_perl_bc_run( char * str ){
   compile_only = FALSE;
   yyin = NULL;
   my_init_output();
-  //fprintf(stderr, "running this: %s \n", str);
   generate(str);
-  //fprintf(stderr, "Run result: %s \n", my_current_output());
   return my_current_output();
 
 }
@@ -401,117 +429,6 @@ check_params ( params, autos )
 	}
     }
 }
-
-
-/* Initialize the code generator the parser. */
-
-/*
-void
-init_gen ()
-{
-*/
-  /* Get things ready. */
-/*
-  break_label = 0;
-  continue_label = 0;
-  next_label  = 1;
-  out_count = 2;
-  if (compile_only) 
-    printf ("@i");
-  else
-    init_load ();
-  had_error = FALSE;
-  did_gen = FALSE;
-}
-*/
-
-
-/* generate code STR for the machine. */
-
-/*
-void
-generate (str)
-      char *str;
-{
-  did_gen = TRUE;
-  if (compile_only)
-    {
-      printf ("%s",str);
-      //fprintf(stderr, "we got here 1: %s ...\n", str);
-      out_count += strlen(str);
-      if (out_count > 60)
-	{
-	  printf ("\n");
-	  out_count = 0;
-	}
-    }
-  else
-    load_code (str);
-}
-*/
-
-
-/* Execute the current code as loaded. */
-
-/*
-void
-run_code()
-{
-*/
-  /* If no compile errors run the current code. */
-/*
-  if (!had_error && did_gen)
-    {
-      if (compile_only)
-	{
-	  printf ("@r\n"); 
-      //fprintf(stderr, "we got here @r ...\n");
-	  out_count = 0;
-	}
-      else
-	execute ();
-    }
-
-*/
-  /* Reinitialize the code generation and machine. */
-/*
-  if (did_gen)
-    init_gen();
-  else
-    had_error = FALSE;
-}
-
-*/
-
-/* Output routines: Write a character CH to the standard output.
-   It keeps track of the number of characters output and may
-   break the output with a "\<cr>".  Always used for numbers. */
-
-/*
-void
-out_char (ch)
-     int ch;
-{
-  //fprintf(stderr, "out_char: %c \n", ch);
-  if (ch == '\n')
-    {
-      out_col = 0;
-      putchar ('\n');
-    }
-  else
-    {
-      out_col++;
-      if (out_col == line_size-1)
-	{
-	  putchar ('\\');
-	  putchar ('\n');
-	  out_col = 1;
-	}
-      putchar (ch);
-    }
-}
-
-*/
 
 
 /* Output routines: Write a character CH to the standard output.

@@ -137,6 +137,9 @@ _PROTOTYPE(void process_params, (program_counter *pc, int func ));
 _PROTOTYPE(int yyparse, (void));
 _PROTOTYPE(int yylex, (void)); 
 
+/* New functions added since version 0.07 */
+_PROTOTYPE(void load_math_lib, (void));
+
 #if defined(LIBEDIT)
 /* The *?*&^ prompt function */
 _PROTOTYPE(char *null_prompt, (EditLine *));
